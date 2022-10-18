@@ -39,7 +39,6 @@ exports.createUser = (req, res, next) => {
                 isAdmin: false,
               });
 
-              console.log(user);
 
               // Store the user data in the database
               user
@@ -99,8 +98,6 @@ exports.modifyUser = (req, res, next) => {
                     res.status(500).json({ error: "Internal servor error 1" })
                 );
 
-                console.log(userFound);
-
                 if (userFound != null && req.body.email != null) {
                   res.json({ message: "Email déja pris" });
                 } else {
@@ -136,8 +133,7 @@ exports.modifyUser = (req, res, next) => {
             () =>
               res.status(500).json({ error: "Internal servor error 1" })
           );
-            console.log(userFound);
-            console.log(req.body.email);
+
           if (userFound != null && req.body.email != null) {
             res.json({ message: "Email déja pris" });
           } else {
@@ -197,8 +193,7 @@ exports.logUser = (req, res, next) => {
         );
 
         if (userFound != null) {
-          console.log("test 1");
-          console.log(userFound);
+
           const passwordMatch = await bcrypt
             .compare(req.body.password, userFound.password)
             .catch((error) => {
@@ -216,7 +211,6 @@ exports.logUser = (req, res, next) => {
                 { expiresIn: "24h" }
               ),
             };
-            console.log(update.token);
 
             const query = { _id: userFound._id };
 
@@ -225,8 +219,6 @@ exports.logUser = (req, res, next) => {
                 res.status(400).send(error);
               }
             );
-
-            console.log(userModify);
 
             if (userModify) {
               res.status(201).send({ message: "Compte connecté !" });

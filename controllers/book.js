@@ -42,7 +42,6 @@ exports.addBook = (req, res, next) => {
           librarianreview: req.body.librarianreview || "En cours d'examination",
         });
 
-        console.log(book);
         // Store the user data in the database
         book
           .save()
@@ -189,7 +188,6 @@ exports.getBookWithCategory = (req, res, next) => {
         if (categoryExist == null) {
           res.json({ message: "cette catégorie n'existe pas" });
         } else {
-          console.log(categoryExist._id.toString());
           Book.find({
             categories: { $all: [categoryExist._id.toString()] },
           })

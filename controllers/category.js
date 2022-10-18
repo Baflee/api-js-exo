@@ -23,7 +23,6 @@ exports.createCategory = (req, res, next) => {
         });
 
         // Store the user data in the database
-        console.log(category.name);
         category
           .save()
           .then(() =>
