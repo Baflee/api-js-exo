@@ -5,13 +5,13 @@ const categoryCtr = require('../controllers/category');
 const router = express.Router();
 
 //Route to create an category
-router.post('/', categoryCtr.createCategory);
+router.post('/', auth, categoryCtr.createCategory);
 
 // Route to fetch categories
-router.get('/', categoryCtr.getCategories);
+router.get('/', auth, categoryCtr.getCategories);
 
 // Route to delete one category
-router.delete('/', categoryCtr.deleteCategory);
+router.delete('/', auth, categoryCtr.deleteCategory);
 
 
 module.exports = router;

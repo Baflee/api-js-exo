@@ -80,24 +80,22 @@ exports.modifyUser = (req, res, next) => {
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
-        console.log("test 1");
         const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
-        console.log("test 1.5");
-        // If the input is safe, check the password strengh
+
         if (req.body.email) {
           const userFound = await User.findOne({ email: req.body.email }).catch(
             () => res.status(500).json({ error: "Internal servor error 1" })
           );
 
-          if (userFound) {
+          console.log(userFound);
+
+          if (userFound != null) {
             res.json({ message: "Email déja pris" });
           }
         }
+
         if (req.body.password) {
-          console.log("test 1.75");
-          console.log("password: " + req.body.password);
           if (pwRules.validate(req.body.password)) {
-            console.log("test 2");
             // Hash the password
             await bcrypt
               .hash(req.body.password, 10)
@@ -108,13 +106,16 @@ exports.modifyUser = (req, res, next) => {
                   isAdmin: req.body.isAdmin,
                 };
 
-                await User.findOneAndUpdate(filter, updateUser)
-                  .then(
-                    res.status(201).json({ message: "Utilisateur modifié" })
-                  )
-                  .catch((error) => {
-                    res.status(400).send(error);
-                  });
+                const userModify = User.findOneAndUpdate(
+                  filter,
+                  updateUser
+                ).catch((error) => {
+                  res.status(400).send(error);
+                });
+
+                if (userModify) {
+                  res.status(201).json({ message: "Utilisateur modifié" });
+                }
               })
               .catch(() =>
                 res
@@ -125,18 +126,23 @@ exports.modifyUser = (req, res, next) => {
             res.json({ message: "Mot de passe invalide" });
           }
         } else if (req.body.password == "") {
-          return res.json({ message: "Mot de passe invalide" });
+          res.json({ message: "Mot de passe invalide" });
         } else {
           const updateUser = {
             email: req.body.email,
             isAdmin: req.body.isAdmin,
           };
 
-          await User.findOneAndUpdate(filter, updateUser)
-            .then(res.status(201).json({ message: "Utilisateur modifié" }))
-            .catch((error) => {
-              res.status(400).send(error);
-            });
+          const userModify = User.findOneAndUpdate(
+            filter,
+            updateUser
+          ).catch((error) => {
+            res.status(400).send(error);
+          });
+
+          if (userModify) {
+            res.status(201).json({ message: "Utilisateur modifié" });
+          }
         }
       }
     })
@@ -182,6 +188,8 @@ exports.logUser = (req, res, next) => {
         );
 
         if (userFound != null) {
+          console.log("test 1");
+          console.log(userFound);
           const passwordMatch = await bcrypt
             .compare(req.body.password, userFound.password)
             .catch((error) => {
@@ -189,23 +197,27 @@ exports.logUser = (req, res, next) => {
             });
 
           if (passwordMatch) {
-            const update = req.body;
+            const update = {
+              token: jwt.sign(
+                {
+                  _id: userFound._id,
+                  isAdmin: userFound.isAdmin,
+                },
+                "RANDOM_TOKEN_SECRET",
+                { expiresIn: "24h" }
+              ),
+            };
+            console.log(update.token);
 
-            req.body.token = jwt.sign(
-              {
-                _id: userFound._id,
-                isAdmin: userFound.isAdmin,
-              },
-              "RANDOM_TOKEN_SECRET",
-              { expiresIn: "24h" }
+            const query = { _id: userFound._id };
+
+            const userModify = await User.findOneAndUpdate(query, update).catch(
+              (error) => {
+                res.status(400).send(error);
+              }
             );
 
-            const userModify = await User.findOneAndUpdate(
-              userFound._id,
-              update
-            ).catch((error) => {
-              res.status(400).send(error);
-            });
+            console.log(userModify);
 
             if (userModify) {
               res.status(201).send({ message: "Compte connecté !" });

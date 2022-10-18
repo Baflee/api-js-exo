@@ -7,19 +7,19 @@ const bookCtr = require('../controllers/book');
 const router = express.Router();
 
 // Create a book
-router.post('/', bookCtr.addBook);
+router.post('/', auth, bookCtr.addBook);
 
 // Modify a book
-router.patch('/', bookCtr.modifyBook);
+router.patch('/', auth, bookCtr.modifyBook);
 
 // Delete a book
-router.delete('/', bookCtr.deleteBook);
+router.delete('/', auth, bookCtr.deleteBook);
 
 // Fetch all Books
-router.get('/', bookCtr.getBooks);
+router.get('/', auth, bookCtr.getBooks);
 
 // Fetch one book based on name
-router.get('/getBook', bookCtr.getBook);
+router.get('/getBook', auth, bookCtr.getBook);
 
 // Fetch one book based on category
 //router.post('/', bookCtr.getBookCategory);

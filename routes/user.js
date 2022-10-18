@@ -11,13 +11,13 @@ router.post('/signup', userCtr.createUser);
 router.post('/login', userCtr.logUser);
 
 // Modify an account
-router.patch('/', userCtr.modifyUser);
+router.patch('/', auth, userCtr.modifyUser);
 
 // Route to fetch all accounts
-router.get('/', userCtr.getUsers);
+router.get('/', auth, userCtr.getUsers);
 
 // Route to fetch one account
-router.get('/getUser', userCtr.getUser)
+router.get('/getUser', auth, userCtr.getUser)
 
 // Route to delete one account
 router.delete('/', auth, userCtr.deleteUser);
