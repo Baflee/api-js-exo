@@ -22,7 +22,7 @@ router.get('/', auth, bookCtr.getBooks);
 router.get('/getBook', auth, bookCtr.getBook);
 
 // Fetch one book based on category
-//router.post('/', bookCtr.getBookCategory);
+router.get('/getBookWithcategory', bookCtr.getBookWithCategory);
 
 
 module.exports = router;

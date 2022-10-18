@@ -3,6 +3,7 @@ const { Validator } = require("node-input-validator");
 
 // import book model
 const Book = require("../models/book_model");
+const Category = require("../models/category_model");
 
 exports.addBook = (req, res, next) => {
   const validInput = new Validator(req.body, {
@@ -117,21 +118,24 @@ exports.modifyBook = async (req, res, next) => {
 
   const update = req.body;
 
-  validInput.check().then(async (matched) => {
-    if (!matched) {
-      res.status(400).send(validInput.errors);
-    } else {
-      const bookModify = await Book.findOneAndUpdate(filter, update).catch(
-        (error) => {
-          res.status(400).send(error);
-        }
-      );
+  validInput
+    .check()
+    .then(async (matched) => {
+      if (!matched) {
+        res.status(400).send(validInput.errors);
+      } else {
+        const bookModify = await Book.findOneAndUpdate(filter, update).catch(
+          (error) => {
+            res.status(400).send(error);
+          }
+        );
 
-      if (bookModify) {
-        res.status(201).json({ message: "Livre modifié" });
+        if (bookModify) {
+          res.status(201).json({ message: "Livre modifié" });
+        }
       }
-    }
-  }).catch(() => res.status(400).send(validInput.errors));
+    })
+    .catch(() => res.status(400).send(validInput.errors));
 };
 
 exports.deleteBook = (req, res, next) => {
@@ -158,6 +162,43 @@ exports.deleteBook = (req, res, next) => {
           res.status(201).json({
             message: "Cette id n'existe pas dans la base de donnée des livres",
           });
+        }
+      }
+    })
+    .catch(() => res.status(400).send(validInput.errors));
+};
+
+exports.getBookWithCategory = (req, res, next) => {
+  const validInput = new Validator(req.body, {
+    name: "required",
+  });
+
+  validInput
+    .check()
+    .then(async (matched) => {
+      // If input is not safe, handle the error
+      if (!matched) {
+        res.status(400).send(validInput.errors);
+      } else {
+        const categoryExist = await Category.findOne({
+          name: req.body.name,
+        }).catch((error) => {
+          res.status(400).send(error);
+        });
+
+        if (categoryExist == null) {
+          res.json({ message: "cette catégorie n'existe pas" });
+        } else {
+          console.log(categoryExist._id.toString());
+          Book.find({
+            categories: { $all: [categoryExist._id.toString()] },
+          })
+            .then((books) => {
+              res.status(201).send(books);
+            })
+            .catch((error) => {
+              res.status(400).send(error);
+            });
         }
       }
     })
