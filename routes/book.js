@@ -1,5 +1,5 @@
 const express = require('express'); 
-
+const auth = require('../middleware/auth');
 const bookCtr = require('../controllers/book');
 
 // Import the book methods

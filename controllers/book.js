@@ -113,34 +113,25 @@ exports.modifyBook = async (req, res, next) => {
     _id: "required",
   });
 
-  const filter = { _id:mongoose.Types.ObjectId(req.body._id)};
+  const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
 
-  const update = {
-    images: req.body.images,
-    title: req.body.title,
-    author: req.body.author,
-    editor: req.body.editor,
-    categories: req.body.categories,
-    description: req.body.description,
-    stock: req.body.stock,
-    price: req.body.price,
-    isbn: req.body.isbn,
-    pagenumber: req.body.pagenumber,
-    price: req.body.price,
-    publishingyear: req.body.publishingyear,
-    librarianreview: req.body.librarianreview
-  }
+  const update = req.body;
 
-  const bookModify = await Book.findOneAndUpdate({
-    filter,
-    update
-  }).catch((error) => {
-    res.status(400).send(error);
-  });
+  validInput.check().then(async (matched) => {
+    if (!matched) {
+      res.status(400).send(validInput.errors);
+    } else {
+      const bookModify = await Book.findOneAndUpdate(filter, update).catch(
+        (error) => {
+          res.status(400).send(error);
+        }
+      );
 
-  if(bookModify) {
-    res.status(201).json({ message: "Livre modifié" });
-  }
+      if (bookModify) {
+        res.status(201).json({ message: "Livre modifié" });
+      }
+    }
+  }).catch(() => res.status(400).send(validInput.errors));
 };
 
 exports.deleteBook = (req, res, next) => {
@@ -164,12 +155,9 @@ exports.deleteBook = (req, res, next) => {
         if (bookDelete.deletedCount == 1) {
           res.status(201).json({ message: "Livre Supprimé" });
         } else {
-          res
-            .status(201)
-            .json({
-              message:
-                "Cette id n'existe pas dans la base de donnée des livres",
-            });
+          res.status(201).json({
+            message: "Cette id n'existe pas dans la base de donnée des livres",
+          });
         }
       }
     })

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const pwRules = require("../security/password");
 const { Validator } = require("node-input-validator");
-
+const jwt = require("jsonwebtoken");
 const User = require("../models/user_model");
 
 exports.createUser = (req, res, next) => {
@@ -11,6 +11,11 @@ exports.createUser = (req, res, next) => {
     email: "required|email|length:100",
     password: "required",
   });
+
+  let update = {
+    email: req.body.email,
+    isAdmin: req.body.isAdmin,
+  };
 
   // Check the input data from the frontend
   validInput
@@ -30,24 +35,108 @@ exports.createUser = (req, res, next) => {
               const user = new User({
                 email: req.body.email,
                 password: hash,
+                token: "",
                 isAdmin: false,
               });
+
+              console.log(user);
 
               // Store the user data in the database
               user
                 .save()
-                .then(() =>
-                  res.status(201).json({ message: "Compte créer !" })
-                )
+                .then(() => res.status(201).json({ message: "Compte créer !" }))
                 .catch(() =>
-                  res.status(500).json({ error: "Internal servor error 1" })
+                  res
+                    .status(500)
+                    .json({ error: "Internal servor error (Store User Data)" })
                 );
             })
             .catch(() =>
-              res.status(500).json({ error: "Internal servor error 2" })
+              res
+                .status(500)
+                .json({ error: "Internal servor error (Password Maker)" })
             );
         } else {
           throw "Invalid password";
+        }
+      }
+    })
+    .catch(() =>
+      res.status(400).send({ message: "test", details: validInput.errors })
+    );
+};
+
+exports.modifyUser = (req, res, next) => {
+  // Prepare the input data validation
+  const validInput = new Validator(req.body, {
+    _id: "required",
+  });
+
+  // Check the input data from the frontend
+  validInput
+    .check()
+    .then(async (matched) => {
+      // If input is not safe, handle the error
+      if (!matched) {
+        res.status(400).send(validInput.errors);
+      } else {
+        console.log("test 1");
+        const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
+        console.log("test 1.5");
+        // If the input is safe, check the password strengh
+        if (req.body.email) {
+          const userFound = await User.findOne({ email: req.body.email }).catch(
+            () => res.status(500).json({ error: "Internal servor error 1" })
+          );
+
+          if (userFound) {
+            res.json({ message: "Email déja pris" });
+          }
+        }
+        if (req.body.password) {
+          console.log("test 1.75");
+          console.log("password: " + req.body.password);
+          if (pwRules.validate(req.body.password)) {
+            console.log("test 2");
+            // Hash the password
+            await bcrypt
+              .hash(req.body.password, 10)
+              .then(async (hash) => {
+                const updateUser = {
+                  email: req.body.email,
+                  password: hash,
+                  isAdmin: req.body.isAdmin,
+                };
+
+                await User.findOneAndUpdate(filter, updateUser)
+                  .then(
+                    res.status(201).json({ message: "Utilisateur modifié" })
+                  )
+                  .catch((error) => {
+                    res.status(400).send(error);
+                  });
+              })
+              .catch(() =>
+                res
+                  .status(500)
+                  .json({ error: "Internal servor error (Password Maker)" })
+              );
+          } else {
+            res.json({ message: "Mot de passe invalide" });
+          }
+        } else if (req.body.password == "") {
+          return res.json({ message: "Mot de passe invalide" });
+        } else {
+          const updateUser = {
+            email: req.body.email,
+            isAdmin: req.body.isAdmin,
+          };
+
+          await User.findOneAndUpdate(filter, updateUser)
+            .then(res.status(201).json({ message: "Utilisateur modifié" }))
+            .catch((error) => {
+              res.status(400).send(error);
+            });
         }
       }
     })
@@ -93,16 +182,34 @@ exports.logUser = (req, res, next) => {
         );
 
         if (userFound != null) {
-          const passwordMatch = await bcrypt.compare(
-            req.body.password,
-            userFound.password
-          ).catch(
-            (error) => {
+          const passwordMatch = await bcrypt
+            .compare(req.body.password, userFound.password)
+            .catch((error) => {
               res.status(400).send(error);
             });
 
           if (passwordMatch) {
-            res.status(201).json({ message: "Compte connecté !" });
+            const update = req.body;
+
+            req.body.token = jwt.sign(
+              {
+                _id: userFound._id,
+                isAdmin: userFound.isAdmin,
+              },
+              "RANDOM_TOKEN_SECRET",
+              { expiresIn: "24h" }
+            );
+
+            const userModify = await User.findOneAndUpdate(
+              userFound._id,
+              update
+            ).catch((error) => {
+              res.status(400).send(error);
+            });
+
+            if (userModify) {
+              res.status(201).send({ message: "Compte connecté !" });
+            }
           } else {
             res.json({ message: "Mauvais Mot de passe" });
           }
@@ -172,6 +279,7 @@ exports.deleteUser = (req, res, next) => {
   // Else
   // Handle the error
   // Catch mongoose error
+
   const validInput = new Validator(req.body, {
     email: "required|email|length:100",
   });

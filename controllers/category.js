@@ -27,7 +27,7 @@ exports.createCategory = (req, res, next) => {
         category
           .save()
           .then(() =>
-            res.status(201).json({ message: "Book Category created !" })
+            res.status(201).json({ message: "Catégorie de livre créée !" })
           )
           .catch(() =>
             res.status(500).json({ error: "Internal server error" })
@@ -66,7 +66,7 @@ exports.deleteCategory = (req, res, next) => {
         });
 
         if (categoryDelete.deletedCount == 1) {
-          res.status(201).json({ message: "Categorié Supprimée" });
+          res.status(201).json({ message: "Catégorie Supprimée" });
         } else {
           res
             .status(201)
