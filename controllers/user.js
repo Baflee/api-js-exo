@@ -82,18 +82,6 @@ exports.modifyUser = (req, res, next) => {
       } else {
         const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
 
-        if (req.body.email) {
-          const userFound = await User.findOne({ email: req.body.email }).catch(
-            () => res.status(500).json({ error: "Internal servor error 1" })
-          );
-
-          console.log(userFound);
-
-          if (userFound != null) {
-            res.json({ message: "Email déja pris" });
-          }
-        }
-
         if (req.body.password) {
           if (pwRules.validate(req.body.password)) {
             // Hash the password
@@ -106,15 +94,26 @@ exports.modifyUser = (req, res, next) => {
                   isAdmin: req.body.isAdmin,
                 };
 
-                const userModify = User.findOneAndUpdate(
-                  filter,
-                  updateUser
-                ).catch((error) => {
-                  res.status(400).send(error);
-                });
+                const userFound = await User.findOne({ email: req.body.email }).catch(
+                  () =>
+                    res.status(500).json({ error: "Internal servor error 1" })
+                );
 
-                if (userModify) {
-                  res.status(201).json({ message: "Utilisateur modifié" });
+                console.log(userFound);
+
+                if (userFound != null && req.body.email != null) {
+                  res.json({ message: "Email déja pris" });
+                } else {
+                  const userModify = User.findOneAndUpdate(
+                    filter,
+                    updateUser
+                  ).catch((error) => {
+                    res.status(400).send(error);
+                  });
+  
+                  if (userModify) {
+                    res.status(201).json({ message: "Utilisateur modifié" });
+                  }
                 }
               })
               .catch(() =>
@@ -133,15 +132,25 @@ exports.modifyUser = (req, res, next) => {
             isAdmin: req.body.isAdmin,
           };
 
-          const userModify = User.findOneAndUpdate(
-            filter,
-            updateUser
-          ).catch((error) => {
-            res.status(400).send(error);
-          });
+          const userFound = await User.findOne({ email: req.body.email }).catch(
+            () =>
+              res.status(500).json({ error: "Internal servor error 1" })
+          );
+            console.log(userFound);
+            console.log(req.body.email);
+          if (userFound != null && req.body.email != null) {
+            res.json({ message: "Email déja pris" });
+          } else {
+            const userModify = User.findOneAndUpdate(
+              filter,
+              updateUser
+            ).catch((error) => {
+              res.status(400).send(error);
+            });
 
-          if (userModify) {
-            res.status(201).json({ message: "Utilisateur modifié" });
+            if (userModify) {
+              res.status(201).json({ message: "Utilisateur modifié" });
+            }
           }
         }
       }
