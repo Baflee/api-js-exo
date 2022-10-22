@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const { Validator } = require("node-input-validator");
 
-// import book model
 const Book = require("../models/book_model");
 const Category = require("../models/category_model");
 
@@ -21,11 +20,9 @@ exports.addBook = (req, res, next) => {
   validInput
     .check()
     .then((matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
-        // Format the book data for storage
         const book = new Book({
           images: req.body.images || [],
           title: req.body.title,
@@ -42,7 +39,6 @@ exports.addBook = (req, res, next) => {
           librarianreview: req.body.librarianreview || "En cours d'examination",
         });
 
-        // Store the user data in the database
         book
           .save()
           .then(() => res.status(201).json({ message: "livre créer !" }))
@@ -54,20 +50,19 @@ exports.addBook = (req, res, next) => {
     .catch(() => res.status(400).send(validInput.errors));
 };
 
-exports.getBook = (req, res, next) => {
-  const validInput = new Validator(req.body, {
-    _id: "required",
+exports.getBook = async (req, res, next) => {
+  const validInput = new Validator(req.params, {
+    id: "required|minLength:24|maxLength:24",
   });
 
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
         const bookExist = await Book.findOne({
-          _id: mongoose.Types.ObjectId(req.body._id),
+          _id: mongoose.Types.ObjectId(req.params.id),
         }).catch((error) => {
           res.status(400).send(error);
         });
@@ -95,20 +90,6 @@ exports.getBooks = (req, res, next) => {
 };
 
 exports.modifyBook = async (req, res, next) => {
-  // Prepare the input data validation
-  // Check the input data from the frontend
-  // If input is not safe, handle the error
-  // Else
-  // Use the request parameters to find the book data
-  // Update the book data
-  /* You could use first the mongoose method .findOne(),
-   * and after you could use the mongoose methode .updateOne.
-   *
-   * Or you could use the combined method .findOneAndUpdate()
-   *
-   * */
-  // Catch mongoose error
-  // Catch input validator error
   const validInput = new Validator(req.body, {
     _id: "required",
   });
@@ -145,7 +126,6 @@ exports.deleteBook = (req, res, next) => {
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
@@ -175,7 +155,6 @@ exports.getBookWithCategory = (req, res, next) => {
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {

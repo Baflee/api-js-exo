@@ -6,10 +6,15 @@ module.exports = (req, res, next) => {
 
     const decodeToken = jwt.verify(token, "RANDOM_TOKEN_SECRET");
 
-    const _id = decodeToken._id;
-    res.locals._id = _id;
-    
-    next();
+    if (decodeToken.isAdmin == true) {
+      const _id = decodeToken._id;
+      res.locals._id = _id;
+      next();
+    } else {
+      res.json({
+        message: "Vous n'avez pas assez de droit",
+      });
+    }
   } catch (error) {
     res.status(401).json({ error: error | "Authentification failed !" });
   }

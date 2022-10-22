@@ -4,25 +4,20 @@ const { Validator } = require("node-input-validator");
 const Category = require("../models/category_model");
 
 exports.createCategory = (req, res, next) => {
-  // Prepare the input data validation
   const validInput = new Validator(req.body, {
     name: "required",
   });
 
-  // Check the input data from the frontend
   validInput
     .check()
     .then((matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
-        // Format the user data for storage
         const category = new Category({
           name: req.body.name,
         });
 
-        // Store the user data in the database
         category
           .save()
           .then(() =>
@@ -54,7 +49,6 @@ exports.deleteCategory = (req, res, next) => {
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {

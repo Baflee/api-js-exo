@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user_model");
 
 exports.createUser = (req, res, next) => {
-  // Prepare the input data validation
   const validInput = new Validator(req.body, {
     email: "required|email|length:100",
     password: "required",
@@ -17,21 +16,16 @@ exports.createUser = (req, res, next) => {
     isAdmin: req.body.isAdmin,
   };
 
-  // Check the input data from the frontend
   validInput
     .check()
     .then((matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
-        // If the input is safe, check the password strengh
         if (pwRules.validate(req.body.password)) {
-          // Hash the password
           bcrypt
             .hash(req.body.password, 10)
             .then((hash) => {
-              // Format the user data for storage
               const user = new User({
                 email: req.body.email,
                 password: hash,
@@ -39,8 +33,6 @@ exports.createUser = (req, res, next) => {
                 isAdmin: false,
               });
 
-
-              // Store the user data in the database
               user
                 .save()
                 .then(() => res.status(201).json({ message: "Compte créer !" }))
@@ -66,16 +58,13 @@ exports.createUser = (req, res, next) => {
 };
 
 exports.modifyUser = (req, res, next) => {
-  // Prepare the input data validation
   const validInput = new Validator(req.body, {
     _id: "required",
   });
 
-  // Check the input data from the frontend
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
@@ -83,7 +72,6 @@ exports.modifyUser = (req, res, next) => {
 
         if (req.body.password) {
           if (pwRules.validate(req.body.password)) {
-            // Hash the password
             await bcrypt
               .hash(req.body.password, 10)
               .then(async (hash) => {
@@ -93,9 +81,10 @@ exports.modifyUser = (req, res, next) => {
                   isAdmin: req.body.isAdmin,
                 };
 
-                const userFound = await User.findOne({ email: req.body.email }).catch(
-                  () =>
-                    res.status(500).json({ error: "Internal servor error 1" })
+                const userFound = await User.findOne({
+                  email: req.body.email,
+                }).catch(() =>
+                  res.status(500).json({ error: "Internal servor error 1" })
                 );
 
                 if (userFound != null && req.body.email != null) {
@@ -107,7 +96,7 @@ exports.modifyUser = (req, res, next) => {
                   ).catch((error) => {
                     res.status(400).send(error);
                   });
-  
+
                   if (userModify) {
                     res.status(201).json({ message: "Utilisateur modifié" });
                   }
@@ -130,19 +119,17 @@ exports.modifyUser = (req, res, next) => {
           };
 
           const userFound = await User.findOne({ email: req.body.email }).catch(
-            () =>
-              res.status(500).json({ error: "Internal servor error 1" })
+            () => res.status(500).json({ error: "Internal servor error 1" })
           );
 
           if (userFound != null && req.body.email != null) {
             res.json({ message: "Email déja pris" });
           } else {
-            const userModify = User.findOneAndUpdate(
-              filter,
-              updateUser
-            ).catch((error) => {
-              res.status(400).send(error);
-            });
+            const userModify = User.findOneAndUpdate(filter, updateUser).catch(
+              (error) => {
+                res.status(400).send(error);
+              }
+            );
 
             if (userModify) {
               res.status(201).json({ message: "Utilisateur modifié" });
@@ -155,27 +142,6 @@ exports.modifyUser = (req, res, next) => {
 };
 
 exports.logUser = (req, res, next) => {
-  // Prepare the input data validation
-  /* Your code here
-   *
-   *
-   *
-   * */
-  // Check the input data from the frontend
-  // If input is not safe, handle the error
-  // Else
-  // If the input is safe, use the email to check if a user account exists
-  // You will need a mongoose method called .findOne()
-  // If user doesn't exist, handle the error in a safe way
-  // If user exists, compare the input password and the password stored in database
-  // You will need a bcrypt method called .compare()
-  // If input password is incorrect, handle the error in a safe way
-  // If input password is correct, return userId and privileges
-  // Catch bcrypt error
-  // Catch mongoose error
-  // Catch input validator error
-
-  // Prepare the input data validation
   const validInput = new Validator(req.body, {
     email: "required|email|length:100",
     password: "required",
@@ -184,7 +150,6 @@ exports.logUser = (req, res, next) => {
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
@@ -193,7 +158,6 @@ exports.logUser = (req, res, next) => {
         );
 
         if (userFound != null) {
-
           const passwordMatch = await bcrypt
             .compare(req.body.password, userFound.password)
             .catch((error) => {
@@ -245,26 +209,17 @@ exports.getUsers = (req, res, next) => {
 };
 
 exports.getUser = (req, res, next) => {
-  // Check if the logged user is the owner of the requested account
-  // Return the user account data
-  // Catch mongoose error
-  // Else
-  // Use the request parameters to find the user account
-  // Return the user account data in a way that respect its privacy
-  // Catch mongoose error
-
-  const validInput = new Validator(req.body, {
-    email: "required|email|length:100",
+  const validInput = new Validator(req.params, {
+    id: "required|minLength:24|maxLength:24",
   });
 
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {
-        const userExist = await User.findOne({ email: req.body.email }).catch(
+        const userExist = await User.findOne({ _id: req.params.id }).catch(
           (error) => {
             res.status(400).send(error);
           }
@@ -283,16 +238,6 @@ exports.getUser = (req, res, next) => {
 };
 
 exports.deleteUser = (req, res, next) => {
-  // Use the request parameters to find the user account
-  // If the user account doesn't exists, handle the error
-  // Check if the user is authorized to delete the account
-  // Delete the account
-  // You will need a mongoose method called .deleteOne()
-  // Catch mongoose error
-  // Else
-  // Handle the error
-  // Catch mongoose error
-
   const validInput = new Validator(req.body, {
     email: "required|email|length:100",
   });
@@ -300,7 +245,6 @@ exports.deleteUser = (req, res, next) => {
   validInput
     .check()
     .then(async (matched) => {
-      // If input is not safe, handle the error
       if (!matched) {
         res.status(400).send(validInput.errors);
       } else {

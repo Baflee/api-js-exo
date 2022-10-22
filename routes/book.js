@@ -1,27 +1,20 @@
 const express = require('express'); 
 const auth = require('../middleware/auth');
+const authAdmin = require('../middleware/authAdmin');
 const bookCtr = require('../controllers/book');
-
-// Import the book methods
 
 const router = express.Router();
 
-// Create a book
-router.post('/', auth, bookCtr.addBook);
+router.post('/', authAdmin, bookCtr.addBook);
 
-// Modify a book
-router.patch('/', auth, bookCtr.modifyBook);
+router.patch('/', authAdmin, bookCtr.modifyBook);
 
-// Delete a book
-router.delete('/', auth, bookCtr.deleteBook);
+router.delete('/', authAdmin, bookCtr.deleteBook);
 
-// Fetch all Books
 router.get('/', auth, bookCtr.getBooks);
 
-// Fetch one book based on name
-router.get('/getBook', auth, bookCtr.getBook);
+router.get('/:id', auth, bookCtr.getBook);
 
-// Fetch one book based on category
 router.get('/getBookWithcategory', auth, bookCtr.getBookWithCategory);
 
 
