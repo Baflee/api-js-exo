@@ -130,37 +130,27 @@ exports.deleteBook = (req, res, next) => {
     .catch(() => res.status(400).send(validInput.errors));
 };
 
-exports.getBookWithCategory = (req, res, next) => {
-  const validInput = new Validator(req.body, {
-    name: "required",
-  });
-
-  validInput
-    .check()
-    .then(async (matched) => {
-      if (!matched) {
-        res.status(400).send(validInput.errors);
+exports.getBookWithCategory = async (req, res, next) => {
+  console.log(req.params.name);
+  Category.findOne({
+    name: req.params.name,
+  })
+    .then((category) => {
+      if (!category) {
+        res.json({ message: "cette catégorie n'existe pas" });
       } else {
-        const categoryExist = await Category.findOne({
-          name: req.body.name,
-        }).catch((error) => {
-          res.status(400).send(error);
-        });
-
-        if (categoryExist == null) {
-          res.json({ message: "cette catégorie n'existe pas" });
-        } else {
-          Book.find({
-            categories: { $all: [categoryExist._id.toString()] },
+        Book.find({
+          categories: { $all: [category._id] },
+        })
+          .then((book) => {
+            res.status(201).send(book);
           })
-            .then((book) => {
-              res.status(201).send(book);
-            })
-            .catch((error) => {
-              res.status(400).send(error);
-            });
-        }
+          .catch((error) => {
+            res.status(401).send(error);
+          });
       }
     })
-    .catch(() => res.status(400).send(validInput.errors));
+    .catch((error) => {
+      res.status(401).send(error);
+    });
 };

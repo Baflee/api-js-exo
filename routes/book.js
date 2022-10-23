@@ -14,7 +14,7 @@ router.get('/', bookCtr.getBooks);
 
 router.get('/:id', bookCtr.getBook);
 
-router.get('/getBookWithcategory', bookCtr.getBookWithCategory);
+router.get('/category/:name', bookCtr.getBookWithCategory);
 
 
 module.exports = router;
