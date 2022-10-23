@@ -8,9 +8,13 @@ const isUserConnected = (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
 
-    const _id = decodedToken._id;
-    res.locals._id = _id;
-    next();
+    if (decodedToken.exp < new Date().getTime() / 1000) {
+      res.status(401).json({ erreur: error });
+    } else {
+      const _id = decodedToken._id;
+      res.locals._id = _id;
+      next();
+    }
   } catch (error) {
     res.status(401).json({ erreur: error });
   }
@@ -22,9 +26,9 @@ const isUserAdmin = (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
 
-    console.log(decodedToken.isAdmin);
-
-    if (decodedToken.isAdmin) {
+    if (decodedToken.exp < new Date().getTime() / 1000) {
+      res.status(401).json({ erreur: error });
+    } else if (decodedToken.isAdmin) {
       const _id = decodedToken._id;
       res.locals._id = _id;
       next();
@@ -42,9 +46,9 @@ const isUserIsHimselfOrAdmin = (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
 
-    console.log(decodedToken.isAdmin);
-
-    if (decodedToken.isAdmin || decodedToken._id === req.body._id) {
+    if (decodedToken.exp < new Date().getTime() / 1000) {
+      return res.status(401).json({ erreur: error });
+    } else if (decodedToken.isAdmin || decodedToken._id === req.body._id) {
       const _id = decodedToken._id;
       res.locals._id = _id;
       next();
