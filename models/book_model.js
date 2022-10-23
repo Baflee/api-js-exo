@@ -22,7 +22,6 @@ const bookSchema = mongoose.Schema({
   price: { type: Number, required: true },
   isbn: { type: String, required: true },
   pagenumber: { type: Number, required: true },
-  price: { type: Number, required: true },
   publishingyear: { type: Number, required: true },
   librarianreview: { type: String, required: true },
 });

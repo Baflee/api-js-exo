@@ -50,33 +50,16 @@ exports.addBook = (req, res, next) => {
     .catch(() => res.status(400).send(validInput.errors));
 };
 
-exports.getBook = async (req, res, next) => {
-  const validInput = new Validator(req.params, {
-    id: "required|minLength:24|maxLength:24",
-  });
-
-  validInput
-    .check()
-    .then(async (matched) => {
-      if (!matched) {
-        res.status(400).send(validInput.errors);
-      } else {
-        const bookExist = await Book.findOne({
-          _id: mongoose.Types.ObjectId(req.params.id),
-        }).catch((error) => {
-          res.status(400).send(error);
-        });
-
-        if (bookExist != null) {
-          res.status(201).send(bookExist);
-        } else {
-          res.json({
-            message: "Ce livre n'est pas présent dans la base de donnée",
-          });
-        }
-      }
+exports.getBook = (req, res, next) => {
+  Book.findOne({
+    _id: req.params.id,
+  })
+    .then((book) => {
+      res.status(201).send(book);
     })
-    .catch(() => res.status(400).send(validInput.errors));
+    .catch((error) => {
+      res.status(400).send(error);
+    });
 };
 
 exports.getBooks = (req, res, next) => {
@@ -170,8 +153,8 @@ exports.getBookWithCategory = (req, res, next) => {
           Book.find({
             categories: { $all: [categoryExist._id.toString()] },
           })
-            .then((books) => {
-              res.status(201).send(books);
+            .then((book) => {
+              res.status(201).send(book);
             })
             .catch((error) => {
               res.status(400).send(error);

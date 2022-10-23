@@ -11,11 +11,6 @@ exports.createUser = (req, res, next) => {
     password: "required",
   });
 
-  let update = {
-    email: req.body.email,
-    isAdmin: req.body.isAdmin,
-  };
-
   validInput
     .check()
     .then((matched) => {
@@ -52,9 +47,7 @@ exports.createUser = (req, res, next) => {
         }
       }
     })
-    .catch(() =>
-      res.status(400).send({ message: "test", details: validInput.errors })
-    );
+    .catch(() => res.status(400).send(validInput.errors));
 };
 
 exports.modifyUser = (req, res, next) => {
@@ -171,7 +164,7 @@ exports.logUser = (req, res, next) => {
                   _id: userFound._id,
                   isAdmin: userFound.isAdmin,
                 },
-                "RANDOM_TOKEN_SECRET",
+                process.env.SECRETKEYJWT,
                 { expiresIn: "24h" }
               ),
             };
@@ -198,9 +191,33 @@ exports.logUser = (req, res, next) => {
     .catch(() => res.status(400).send(validInput.errors));
 };
 
+exports.getUser = (req, res, next) => {
+  User.findOne({
+    _id: req.params.id,
+  })
+    .then((user) => {
+      if (!user) {
+        res.json({ message: "Aucun compte utilise cette id" });
+      } else {
+        user.token = undefined;
+        user.password = undefined;
+        user.isAdmin = undefined;
+        res.status(201).send(user);
+      }
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+};
+
 exports.getUsers = (req, res, next) => {
   User.find()
     .then((users) => {
+      users.forEach((user) => {
+        user.token = undefined;
+        user.password = undefined;
+        user.isAdmin = undefined;
+      })
       res.status(201).send(users);
     })
     .catch((error) => {
@@ -208,38 +225,9 @@ exports.getUsers = (req, res, next) => {
     });
 };
 
-exports.getUser = (req, res, next) => {
-  const validInput = new Validator(req.params, {
-    id: "required|minLength:24|maxLength:24",
-  });
-
-  validInput
-    .check()
-    .then(async (matched) => {
-      if (!matched) {
-        res.status(400).send(validInput.errors);
-      } else {
-        const userExist = await User.findOne({ _id: req.params.id }).catch(
-          (error) => {
-            res.status(400).send(error);
-          }
-        );
-
-        if (userExist != null) {
-          res.status(201).send(userExist);
-        } else {
-          res.json({
-            message: "Cet email n'est pas présent dans la base de donnée",
-          });
-        }
-      }
-    })
-    .catch(() => res.status(400).send(validInput.errors));
-};
-
 exports.deleteUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
-    email: "required|email|length:100",
+    _id: "required",
   });
 
   validInput
@@ -249,7 +237,7 @@ exports.deleteUser = (req, res, next) => {
         res.status(400).send(validInput.errors);
       } else {
         const userDelete = await User.deleteOne({
-          email: req.body.email,
+          _id: mongoose.Types.ObjectId(req.body._id),
         }).catch((error) => {
           res.status(400).send(error);
         });

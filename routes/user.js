@@ -1,6 +1,5 @@
 const express = require('express');
 const auth = require('../middleware/auth');
-const authAdmin = require('../middleware/authAdmin');
 const userCtr = require('../controllers/user');
 
 const router = express.Router();
@@ -9,12 +8,12 @@ router.post('/signup', userCtr.createUser);
 
 router.post('/login', userCtr.logUser);
 
-router.patch('/', authAdmin, userCtr.modifyUser);
+router.patch('/', auth.isUserIsHimselfOrAdmin, userCtr.modifyUser);
 
-router.get('/', auth, userCtr.getUsers);
+router.get('/', auth.isUserConnected, userCtr.getUsers);
 
-router.get('/:id', auth, userCtr.getUser)
+router.get('/:id', auth.isUserConnected, userCtr.getUser)
 
-router.delete('/', authAdmin, userCtr.deleteUser);
+router.delete('/', auth.isUserIsHimselfOrAdmin, userCtr.deleteUser);
 
 module.exports = router;

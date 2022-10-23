@@ -1,21 +1,20 @@
 const express = require('express'); 
 const auth = require('../middleware/auth');
-const authAdmin = require('../middleware/authAdmin');
 const bookCtr = require('../controllers/book');
 
 const router = express.Router();
 
-router.post('/', authAdmin, bookCtr.addBook);
+router.post('/', auth.isUserAdmin, bookCtr.addBook);
 
-router.patch('/', authAdmin, bookCtr.modifyBook);
+router.patch('/', auth.isUserAdmin, bookCtr.modifyBook);
 
-router.delete('/', authAdmin, bookCtr.deleteBook);
+router.delete('/', auth.isUserAdmin, bookCtr.deleteBook);
 
-router.get('/', auth, bookCtr.getBooks);
+router.get('/', bookCtr.getBooks);
 
-router.get('/:id', auth, bookCtr.getBook);
+router.get('/:id', bookCtr.getBook);
 
-router.get('/getBookWithcategory', auth, bookCtr.getBookWithCategory);
+router.get('/getBookWithcategory', bookCtr.getBookWithCategory);
 
 
 module.exports = router;

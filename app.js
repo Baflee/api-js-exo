@@ -10,6 +10,7 @@ const bookRoutes = require('./routes/book');
 
 const credentials = {user: process.env.USER, pw: process.env.PW, db: process.env.DB, cl: process.env.CL};
 const origin = `mongodb+srv://${credentials.user}:${credentials.pw}@${credentials.cl}.i4p5i.mongodb.net/${credentials.db}?retryWrites=true&w=majority`;
+
 const app = express();
 app.use(express.json());
 
