@@ -131,7 +131,6 @@ exports.deleteBook = (req, res, next) => {
 };
 
 exports.getBookWithCategory = async (req, res, next) => {
-  console.log(req.params.name);
   Category.findOne({
     name: req.params.name,
   })
