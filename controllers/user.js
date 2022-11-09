@@ -186,6 +186,7 @@ exports.logUser = (req, res, next) => {
               res.status(201).send({
                 message: 'Compte connecté !',
                 user: {
+                  _id: userFound._id,
                   email: userFound.email,
                   token: token,
                   isAdmin: userFound.isAdmin,
