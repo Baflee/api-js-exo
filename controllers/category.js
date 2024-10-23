@@ -23,12 +23,16 @@ exports.createCategory = (req, res, next) => {
           .then(() =>
             res.status(201).json({ message: "Catégorie de livre créée !" })
           )
-          .catch(() =>
-            res.status(500).json({ error: "Internal server error" })
-          );
+          .catch((error) => {
+            console.error("Error saving category:", error); // Add this
+            res.status(500).json({ error: "Internal server error" });
+          });
       }
     })
-    .catch(() => res.status(400).send(validInput.errors));
+    .catch((error) => {
+      console.error("Error validating input:", error); // Add this
+      res.status(400).send(validInput.errors);
+    });
 };
 
 exports.getCategories = (req, res, next) => {
@@ -37,6 +41,7 @@ exports.getCategories = (req, res, next) => {
       res.status(201).send(categories);
     })
     .catch((error) => {
+      console.error("Error fetching categories:", error); // Add this
       res.status(400).send(error);
     });
 };
@@ -55,6 +60,7 @@ exports.deleteCategory = (req, res, next) => {
         const categoryDelete = await Category.deleteOne({
           name: req.body.name,
         }).catch((error) => {
+          console.error("Error deleting category:", error); // Add this
           res.status(400).send(error);
         });
 
@@ -67,5 +73,8 @@ exports.deleteCategory = (req, res, next) => {
         }
       }
     })
-    .catch(() => res.status(400).send(validInput.errors));
+    .catch((error) => {
+      console.error("Error validating input:", error); // Add this
+      res.status(400).send(validInput.errors);
+    });
 };

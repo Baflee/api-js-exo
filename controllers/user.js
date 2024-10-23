@@ -4,6 +4,7 @@ const pwRules = require('../security/password')
 const { Validator } = require('node-input-validator')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user_model')
+require('dotenv').config();
 
 exports.createUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
@@ -30,24 +31,29 @@ exports.createUser = (req, res, next) => {
 
               user
                 .save()
-                .then(() => res.status(201).json({ message: 'Compte créer !' }))
-                .catch(() =>
+                .then(() => res.status(201).json({ message: 'Compte créé !' }))
+                .catch((error) => {
+                  console.error('Error saving user:', error) // Add this
                   res
                     .status(500)
-                    .json({ error: 'Internal servor error (Store User Data)' }),
-                )
+                    .json({ error: 'Internal server error (Store User Data)' })
+                })
             })
-            .catch(() =>
+            .catch((error) => {
+              console.error('Error hashing password:', error) // Add this
               res
                 .status(500)
-                .json({ error: 'Internal servor error (Password Maker)' }),
-            )
+                .json({ error: 'Internal server error (Password Maker)' })
+            })
         } else {
           throw 'Invalid password'
         }
       }
     })
-    .catch(() => res.status(400).send(validInput.errors))
+    .catch((error) => {
+      console.error('Error validating input:', error) // Add this
+      res.status(400).send(validInput.errors)
+    })
 }
 
 exports.modifyUser = (req, res, next) => {
@@ -76,17 +82,19 @@ exports.modifyUser = (req, res, next) => {
 
                 const userFound = await User.findOne({
                   email: req.body.email,
-                }).catch(() =>
-                  res.status(500).json({ error: 'Internal servor error 1' }),
-                )
+                }).catch((error) => {
+                  console.error('Error finding user:', error) // Add this
+                  res.status(500).json({ error: 'Internal server error 1' })
+                })
 
                 if (userFound != null && req.body.email != null) {
-                  res.json({ message: 'Email déja pris' })
+                  res.json({ message: 'Email déjà pris' })
                 } else {
                   const userModify = User.findOneAndUpdate(
                     filter,
-                    updateUser,
+                    updateUser
                   ).catch((error) => {
+                    console.error('Error modifying user:', error) // Add this
                     res.status(400).send(error)
                   })
 
@@ -95,11 +103,12 @@ exports.modifyUser = (req, res, next) => {
                   }
                 }
               })
-              .catch(() =>
+              .catch((error) => {
+                console.error('Error hashing password:', error) // Add this
                 res
                   .status(500)
-                  .json({ error: 'Internal servor error (Password Maker)' }),
-              )
+                  .json({ error: 'Internal server error (Password Maker)' })
+              })
           } else {
             res.json({ message: 'Mot de passe invalide' })
           }
@@ -113,17 +122,19 @@ exports.modifyUser = (req, res, next) => {
 
           const userFound = await User.findOne({
             email: req.body.email,
-          }).catch(() =>
-            res.status(500).json({ error: 'Internal servor error 1' }),
-          )
+          }).catch((error) => {
+            console.error('Error finding user:', error) // Add this
+            res.status(500).json({ error: 'Internal server error 1' })
+          })
 
           if (userFound != null && req.body.email != null) {
-            res.json({ message: 'Email déja pris' })
+            res.json({ message: 'Email déjà pris' })
           } else {
             const userModify = User.findOneAndUpdate(filter, updateUser).catch(
               (error) => {
+                console.error('Error modifying user:', error) // Add this
                 res.status(400).send(error)
-              },
+              }
             )
 
             if (userModify) {
@@ -133,7 +144,10 @@ exports.modifyUser = (req, res, next) => {
         }
       }
     })
-    .catch(() => res.status(400).send(validInput.errors))
+    .catch((error) => {
+      console.error('Error validating input:', error) // Add this
+      res.status(400).send(validInput.errors)
+    })
 }
 
 exports.logUser = (req, res, next) => {
@@ -150,14 +164,16 @@ exports.logUser = (req, res, next) => {
       } else {
         const userFound = await User.findOne({
           email: req.body.email,
-        }).catch(() =>
-          res.status(500).json({ error: 'Internal servor error 1' }),
-        )
+        }).catch((error) => {
+          console.error('Error finding user:', error) // Add this
+          res.status(500).json({ error: 'Internal server error 1' })
+        })
 
         if (userFound != null) {
           const passwordMatch = await bcrypt
             .compare(req.body.password, userFound.password)
             .catch((error) => {
+              console.error('Error comparing passwords:', error) // Add this
               res.status(400).send(error)
             })
 
@@ -168,7 +184,7 @@ exports.logUser = (req, res, next) => {
                 isAdmin: userFound.isAdmin,
               },
               process.env.SECRETKEYJWT,
-              { expiresIn: '24h' },
+              { expiresIn: '24h' }
             )
             const update = {
               token: token,
@@ -178,8 +194,9 @@ exports.logUser = (req, res, next) => {
 
             const userModify = await User.findOneAndUpdate(query, update).catch(
               (error) => {
+                console.error('Error modifying user:', error) // Add this
                 res.status(400).send(error)
-              },
+              }
             )
 
             if (userModify) {
@@ -194,14 +211,17 @@ exports.logUser = (req, res, next) => {
               })
             }
           } else {
-            res.json({ message: 'Mauvais Mot de passe' })
+            res.json({ message: 'Mauvais mot de passe' })
           }
         } else {
           res.json({ message: "Ce compte n'existe pas" })
         }
       }
     })
-    .catch(() => res.status(400).send(validInput.errors))
+    .catch((error) => {
+      console.error('Error validating input:', error) // Add this
+      res.status(400).send(validInput.errors)
+    })
 }
 
 exports.getUser = (req, res, next) => {
@@ -219,6 +239,7 @@ exports.getUser = (req, res, next) => {
       }
     })
     .catch((error) => {
+      console.error('Error fetching user:', error) // Add this
       res.status(400).send(error)
     })
 }
@@ -234,6 +255,7 @@ exports.getUsers = (req, res, next) => {
       res.status(201).send(users)
     })
     .catch((error) => {
+      console.error('Error fetching users:', error) // Add this
       res.status(400).send(error)
     })
 }
@@ -252,11 +274,12 @@ exports.deleteUser = (req, res, next) => {
         const userDelete = await User.deleteOne({
           _id: mongoose.Types.ObjectId(req.body._id),
         }).catch((error) => {
+          console.error('Error deleting user:', error) // Add this
           res.status(400).send(error)
         })
 
         if (userDelete.deletedCount == 1) {
-          res.status(201).json({ message: 'Compte Supprimé' })
+          res.status(201).json({ message: 'Compte supprimé' })
         } else {
           res
             .status(201)
@@ -264,5 +287,8 @@ exports.deleteUser = (req, res, next) => {
         }
       }
     })
-    .catch(() => res.status(400).send(validInput.errors))
+    .catch((error) => {
+      console.error('Error validating input:', error) // Add this
+      res.status(400).send(validInput.errors)
+    })
 }

@@ -1,12 +1,13 @@
 const jwt = require("jsonwebtoken");
+require('dotenv').config();
 
-const User = require("../models/user_model");
+const secretJWTKey = process.env.SECRETKEYJWT;
 
 const isUserConnected = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
+    const decodedToken = jwt.verify(token, secretJWTKey);
 
     if (decodedToken.exp < new Date().getTime() / 1000) {
       res.status(401).json({ erreur: error });
@@ -24,7 +25,7 @@ const isUserAdmin = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
+    const decodedToken = jwt.verify(token, secretJWTKey);
 
     if (decodedToken.exp < new Date().getTime() / 1000) {
       res.status(401).json({ erreur: error });
@@ -44,7 +45,7 @@ const isUserIsHimselfOrAdmin = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
 
-    const decodedToken = jwt.verify(token, process.env.SECRETKEYJWT);
+    const decodedToken = jwt.verify(token, secretJWTKey);
 
     if (decodedToken.exp < new Date().getTime() / 1000) {
       return res.status(401).json({ erreur: error });
