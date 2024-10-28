@@ -21,16 +21,16 @@ exports.createCategory = (req, res, next) => {
         category
           .save()
           .then(() =>
-            res.status(201).json({ message: "Catégorie de livre créée !" })
+            res.status(201).json({ message: "Catégorie de livre créée avec succès !" })
           )
           .catch((error) => {
-            console.error("Error saving category:", error); // Add this
-            res.status(500).json({ error: "Internal server error" });
+            console.error("Erreur lors de l'enregistrement de la catégorie :", error);
+            res.status(500).json({ error: "Erreur interne du serveur" });
           });
       }
     })
     .catch((error) => {
-      console.error("Error validating input:", error); // Add this
+      console.error("Erreur lors de la validation des données d'entrée :", error);
       res.status(400).send(validInput.errors);
     });
 };
@@ -41,8 +41,8 @@ exports.getCategories = (req, res, next) => {
       res.status(201).send(categories);
     })
     .catch((error) => {
-      console.error("Error fetching categories:", error); // Add this
-      res.status(400).send(error);
+      console.error("Erreur lors de la récupération des catégories :", error);
+      res.status(400).send("La récupération des catégories a échoué.");
     });
 };
 
@@ -60,21 +60,21 @@ exports.deleteCategory = (req, res, next) => {
         const categoryDelete = await Category.deleteOne({
           name: req.body.name,
         }).catch((error) => {
-          console.error("Error deleting category:", error); // Add this
-          res.status(400).send(error);
+          console.error("Erreur lors de la suppression de la catégorie :", error);
+          res.status(400).send("La suppression de la catégorie a échoué.");
         });
 
         if (categoryDelete.deletedCount == 1) {
-          res.status(201).json({ message: "Catégorie Supprimée" });
+          res.status(201).json({ message: "Catégorie supprimée avec succès !" });
         } else {
           res
             .status(201)
-            .json({ message: "Aucune catégorie sous ce nom existe" });
+            .json({ message: "Aucune catégorie sous ce nom n'existe" });
         }
       }
     })
     .catch((error) => {
-      console.error("Error validating input:", error); // Add this
+      console.error("Erreur lors de la validation des données d'entrée :", error);
       res.status(400).send(validInput.errors);
     });
 };

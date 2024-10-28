@@ -41,15 +41,15 @@ exports.addBook = (req, res, next) => {
 
         book
           .save()
-          .then(() => res.status(201).json({ message: "Livre créé !" }))
+          .then(() => res.status(201).json({ message: "Livre créé avec succès !" }))
           .catch((error) => {
-            console.error("Error saving book:", error); // Add this
-            res.status(500).json({ error: "Internal server error 1" });
+            console.error("Erreur lors de l'enregistrement du livre :", error);
+            res.status(500).json({ error: "Erreur interne du serveur" });
           });
       }
     })
     .catch((error) => {
-      console.error("Error validating input:", error); // Add this
+      console.error("Erreur lors de la validation des données d'entrée :", error);
       res.status(400).send(validInput.errors);
     });
 };
@@ -62,8 +62,8 @@ exports.getBook = (req, res, next) => {
       res.status(201).send(book);
     })
     .catch((error) => {
-      console.error("Error fetching book:", error); // Add this
-      res.status(400).send(error);
+      console.error("Erreur lors de la récupération du livre :", error);
+      res.status(400).send("La récupération du livre a échoué.");
     });
 };
 
@@ -73,8 +73,8 @@ exports.getBooks = (req, res, next) => {
       res.status(201).send(books);
     })
     .catch((error) => {
-      console.error("Error fetching books:", error); // Add this
-      res.status(400).send(error);
+      console.error("Erreur lors de la récupération des livres :", error);
+      res.status(400).send("La récupération des livres a échoué.");
     });
 };
 
@@ -84,7 +84,9 @@ exports.modifyBook = async (req, res, next) => {
   });
 
   const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
+  console.log("filter: " + JSON.stringify(filter));
   const update = req.body;
+  console.log("update: " + JSON.stringify(update));
 
   validInput
     .check()
@@ -94,18 +96,18 @@ exports.modifyBook = async (req, res, next) => {
       } else {
         const bookModify = await Book.findOneAndUpdate(filter, update).catch(
           (error) => {
-            console.error("Error modifying book:", error); // Add this
-            res.status(400).send(error);
+            console.error("Erreur lors de la modification du livre :", error);
+            res.status(400).send("La modification du livre a échoué.");
           }
         );
 
         if (bookModify) {
-          res.status(201).json({ message: "Livre modifié" });
+          res.status(201).json({ message: "Livre modifié avec succès !" });
         }
       }
     })
     .catch((error) => {
-      console.error("Error validating input:", error); // Add this
+      console.error("Erreur lors de la validation des données d'entrée :", error);
       res.status(400).send(validInput.errors);
     });
 };
@@ -124,21 +126,21 @@ exports.deleteBook = (req, res, next) => {
         const bookDelete = await Book.deleteOne({
           _id: mongoose.Types.ObjectId(req.body._id),
         }).catch((error) => {
-          console.error("Error deleting book:", error); // Add this
-          res.status(400).send(error);
+          console.error("Erreur lors de la suppression du livre :", error);
+          res.status(400).send("La suppression du livre a échoué.");
         });
 
         if (bookDelete.deletedCount == 1) {
-          res.status(201).json({ message: "Livre Supprimé" });
+          res.status(201).json({ message: "Livre supprimé avec succès !" });
         } else {
           res.status(201).json({
-            message: "Cette id n'existe pas dans la base de donnée des livres",
+            message: "Cet identifiant n'existe pas dans la base de données des livres",
           });
         }
       }
     })
     .catch((error) => {
-      console.error("Error validating input:", error); // Add this
+      console.error("Erreur lors de la validation des données d'entrée :", error);
       res.status(400).send(validInput.errors);
     });
 };
@@ -158,13 +160,13 @@ exports.getBookWithCategory = async (req, res, next) => {
             res.status(201).send(book);
           })
           .catch((error) => {
-            console.error("Error fetching books by category:", error); // Add this
-            res.status(401).send(error);
+            console.error("Erreur lors de la récupération des livres par catégorie :", error);
+            res.status(401).send("La récupération des livres par catégorie a échoué.");
           });
       }
     })
     .catch((error) => {
-      console.error("Error fetching category:", error); // Add this
-      res.status(401).send(error);
+      console.error("Erreur lors de la récupération de la catégorie :", error);
+      res.status(401).send("La récupération de la catégorie a échoué.");
     });
 };

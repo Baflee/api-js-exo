@@ -1,22 +1,22 @@
-const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
-const pwRules = require('../security/password')
-const { Validator } = require('node-input-validator')
-const jwt = require('jsonwebtoken')
-const User = require('../models/user_model')
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const pwRules = require('../security/password');
+const { Validator } = require('node-input-validator');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user_model');
 require('dotenv').config();
 
 exports.createUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
     email: 'required|email|length:100',
     password: 'required',
-  })
+  });
 
   validInput
     .check()
     .then((matched) => {
       if (!matched) {
-        res.status(400).send(validInput.errors)
+        res.status(400).send(validInput.errors);
       } else {
         if (pwRules.validate(req.body.password)) {
           bcrypt
@@ -27,47 +27,43 @@ exports.createUser = (req, res, next) => {
                 password: hash,
                 token: '',
                 isAdmin: false,
-              })
+              });
 
               user
                 .save()
                 .then(() => res.status(201).json({ message: 'Compte créé !' }))
                 .catch((error) => {
-                  console.error('Error saving user:', error) // Add this
-                  res
-                    .status(500)
-                    .json({ error: 'Internal server error (Store User Data)' })
-                })
+                  console.error('Erreur lors de la sauvegarde de l\'utilisateur :', error);
+                  res.status(500).json({ error: 'Erreur interne du serveur (Stockage des données utilisateur)' });
+                });
             })
             .catch((error) => {
-              console.error('Error hashing password:', error) // Add this
-              res
-                .status(500)
-                .json({ error: 'Internal server error (Password Maker)' })
-            })
+              console.error('Erreur lors du hashage du mot de passe :', error);
+              res.status(500).json({ error: 'Erreur interne du serveur (Création du mot de passe)' });
+            });
         } else {
-          throw 'Invalid password'
+          res.json({ message: 'Mot de passe invalide' });
         }
       }
     })
     .catch((error) => {
-      console.error('Error validating input:', error) // Add this
-      res.status(400).send(validInput.errors)
-    })
-}
+      console.error('Erreur lors de la validation des données d\'entrée :', error);
+      res.status(400).send(validInput.errors);
+    });
+};
 
 exports.modifyUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
     _id: 'required',
-  })
+  });
 
   validInput
     .check()
     .then(async (matched) => {
       if (!matched) {
-        res.status(400).send(validInput.errors)
+        res.status(400).send(validInput.errors);
       } else {
-        const filter = { _id: mongoose.Types.ObjectId(req.body._id) }
+        const filter = { _id: mongoose.Types.ObjectId(req.body._id) };
 
         if (req.body.password) {
           if (pwRules.validate(req.body.password)) {
@@ -78,104 +74,101 @@ exports.modifyUser = (req, res, next) => {
                   email: req.body.email,
                   password: hash,
                   isAdmin: req.body.isAdmin,
-                }
+                };
 
                 const userFound = await User.findOne({
                   email: req.body.email,
                 }).catch((error) => {
-                  console.error('Error finding user:', error) // Add this
-                  res.status(500).json({ error: 'Internal server error 1' })
-                })
+                  console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+                  res.status(500).json({ error: 'Erreur interne du serveur' });
+                });
 
                 if (userFound != null && req.body.email != null) {
-                  res.json({ message: 'Email déjà pris' })
+                  res.json({ message: 'Email déjà pris' });
                 } else {
-                  const userModify = User.findOneAndUpdate(
-                    filter,
-                    updateUser
-                  ).catch((error) => {
-                    console.error('Error modifying user:', error) // Add this
-                    res.status(400).send(error)
-                  })
+                  const userModify = User.findOneAndUpdate(filter, updateUser).catch(
+                    (error) => {
+                      console.error('Erreur lors de la modification de l\'utilisateur :', error);
+                      res.status(400).send('La modification de l\'utilisateur a échoué.');
+                    }
+                  );
 
                   if (userModify) {
-                    res.status(201).json({ message: 'Utilisateur modifié' })
+                    res.status(201).json({ message: 'Utilisateur modifié' });
                   }
                 }
               })
               .catch((error) => {
-                console.error('Error hashing password:', error) // Add this
-                res
-                  .status(500)
-                  .json({ error: 'Internal server error (Password Maker)' })
-              })
+                console.error('Erreur lors du hashage du mot de passe :', error);
+                res.status(500).json({ error: 'Erreur interne du serveur (Création du mot de passe)' });
+              });
           } else {
-            res.json({ message: 'Mot de passe invalide' })
+            res.json({ message: 'Mot de passe invalide' });
           }
         } else if (req.body.password == '') {
-          res.json({ message: 'Mot de passe invalide' })
+          res.json({ message: 'Mot de passe invalide' });
         } else {
           const updateUser = {
             email: req.body.email,
             isAdmin: req.body.isAdmin,
-          }
+          };
 
           const userFound = await User.findOne({
             email: req.body.email,
           }).catch((error) => {
-            console.error('Error finding user:', error) // Add this
-            res.status(500).json({ error: 'Internal server error 1' })
-          })
+            console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+            res.status(500).json({ error: 'Erreur interne du serveur' });
+          });
 
           if (userFound != null && req.body.email != null) {
-            res.json({ message: 'Email déjà pris' })
+            res.json({ message: 'Email déjà pris' });
           } else {
             const userModify = User.findOneAndUpdate(filter, updateUser).catch(
               (error) => {
-                console.error('Error modifying user:', error) // Add this
-                res.status(400).send(error)
+                console.error('Erreur lors de la modification de l\'utilisateur :', error);
+                res.status(400).send('La modification de l\'utilisateur a échoué.');
               }
-            )
+            );
 
             if (userModify) {
-              res.status(201).json({ message: 'Utilisateur modifié' })
+              res.status(201).json({ message: 'Utilisateur modifié' });
             }
           }
         }
       }
     })
     .catch((error) => {
-      console.error('Error validating input:', error) // Add this
-      res.status(400).send(validInput.errors)
-    })
-}
+      console.error('Erreur lors de la validation des données d\'entrée :', error);
+      res.status(400).send(validInput.errors);
+    });
+};
 
 exports.logUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
     email: 'required|email|length:100',
     password: 'required',
-  })
+  });
 
   validInput
     .check()
     .then(async (matched) => {
       if (!matched) {
-        res.status(400).send(validInput.errors)
+        res.status(400).send(validInput.errors);
       } else {
         const userFound = await User.findOne({
           email: req.body.email,
         }).catch((error) => {
-          console.error('Error finding user:', error) // Add this
-          res.status(500).json({ error: 'Internal server error 1' })
-        })
+          console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+          res.status(500).json({ error: 'Erreur interne du serveur' });
+        });
 
         if (userFound != null) {
           const passwordMatch = await bcrypt
             .compare(req.body.password, userFound.password)
             .catch((error) => {
-              console.error('Error comparing passwords:', error) // Add this
-              res.status(400).send(error)
-            })
+              console.error('Erreur lors de la comparaison des mots de passe :', error);
+              res.status(400).send('La vérification du mot de passe a échoué.');
+            });
 
           if (passwordMatch) {
             const token = jwt.sign(
@@ -185,19 +178,19 @@ exports.logUser = (req, res, next) => {
               },
               process.env.SECRETKEYJWT,
               { expiresIn: '24h' }
-            )
+            );
             const update = {
               token: token,
-            }
+            };
 
-            const query = { _id: userFound._id }
+            const query = { _id: userFound._id };
 
             const userModify = await User.findOneAndUpdate(query, update).catch(
               (error) => {
-                console.error('Error modifying user:', error) // Add this
-                res.status(400).send(error)
+                console.error('Erreur lors de la modification de l\'utilisateur :', error);
+                res.status(400).send('La mise à jour du token a échoué.');
               }
-            )
+            );
 
             if (userModify) {
               res.status(201).send({
@@ -208,21 +201,21 @@ exports.logUser = (req, res, next) => {
                   token: token,
                   isAdmin: userFound.isAdmin,
                 },
-              })
+              });
             }
           } else {
-            res.json({ message: 'Mauvais mot de passe' })
+            res.json({ message: 'Mauvais mot de passe' });
           }
         } else {
-          res.json({ message: "Ce compte n'existe pas" })
+          res.json({ message: "Ce compte n'existe pas" });
         }
       }
     })
     .catch((error) => {
-      console.error('Error validating input:', error) // Add this
-      res.status(400).send(validInput.errors)
-    })
-}
+      console.error('Erreur lors de la validation des données d\'entrée :', error);
+      res.status(400).send(validInput.errors);
+    });
+};
 
 exports.getUser = (req, res, next) => {
   User.findOne({
@@ -230,65 +223,63 @@ exports.getUser = (req, res, next) => {
   })
     .then((user) => {
       if (!user) {
-        res.json({ message: 'Aucun compte utilise cette id' })
+        res.json({ message: 'Aucun compte utilise cet identifiant' });
       } else {
-        user.token = undefined
-        user.password = undefined
-        user.isAdmin = undefined
-        res.status(201).send(user)
+        user.token = undefined;
+        user.password = undefined;
+        user.isAdmin = undefined;
+        res.status(201).send(user);
       }
     })
     .catch((error) => {
-      console.error('Error fetching user:', error) // Add this
-      res.status(400).send(error)
-    })
-}
+      console.error('Erreur lors de la récupération de l\'utilisateur :', error);
+      res.status(400).send('La récupération de l\'utilisateur a échoué.');
+    });
+};
 
 exports.getUsers = (req, res, next) => {
   User.find()
     .then((users) => {
       users.forEach((user) => {
-        user.token = undefined
-        user.password = undefined
-        user.isAdmin = undefined
-      })
-      res.status(201).send(users)
+        user.token = undefined;
+        user.password = undefined;
+        user.isAdmin = undefined;
+      });
+      res.status(201).send(users);
     })
     .catch((error) => {
-      console.error('Error fetching users:', error) // Add this
-      res.status(400).send(error)
-    })
-}
+      console.error('Erreur lors de la récupération des utilisateurs :', error);
+      res.status(400).send('La récupération des utilisateurs a échoué.');
+    });
+};
 
 exports.deleteUser = (req, res, next) => {
   const validInput = new Validator(req.body, {
     _id: 'required',
-  })
+  });
 
   validInput
     .check()
     .then(async (matched) => {
       if (!matched) {
-        res.status(400).send(validInput.errors)
+        res.status(400).send(validInput.errors);
       } else {
         const userDelete = await User.deleteOne({
           _id: mongoose.Types.ObjectId(req.body._id),
         }).catch((error) => {
-          console.error('Error deleting user:', error) // Add this
-          res.status(400).send(error)
-        })
+          console.error('Erreur lors de la suppression de l\'utilisateur :', error);
+          res.status(400).send('La suppression de l\'utilisateur a échoué.');
+        });
 
         if (userDelete.deletedCount == 1) {
-          res.status(201).json({ message: 'Compte supprimé' })
+          res.status(201).json({ message: 'Compte supprimé avec succès' });
         } else {
-          res
-            .status(201)
-            .json({ message: 'Aucun compte sous cette email existe' })
+          res.status(201).json({ message: 'Aucun compte avec cet email n\'existe' });
         }
       }
     })
     .catch((error) => {
-      console.error('Error validating input:', error) // Add this
-      res.status(400).send(validInput.errors)
-    })
-}
+      console.error('Erreur lors de la validation des données d\'entrée :', error);
+      res.status(400).send(validInput.errors);
+    });
+};
