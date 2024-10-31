@@ -25,7 +25,6 @@ exports.addBook = (req, res, next) => {
       } else {
         const book = new Book({
           images: req.body.images || [],
-          title: req.body.title,
           author: req.body.author,
           editor: req.body.editor,
           categories: req.body.categories || [],
@@ -154,7 +153,7 @@ exports.getBookWithCategory = async (req, res, next) => {
         res.json({ message: "Cette catégorie n'existe pas" });
       } else {
         Book.find({
-          categories: { $all: [category.name] },
+          "categories.0": category.name,
         })
           .then((book) => {
             res.status(201).send(book);

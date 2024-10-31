@@ -12,7 +12,7 @@ router.delete('/', auth.isUserAdmin, bookCtr.deleteBook);
 
 router.get('/', bookCtr.getBooks);
 
-router.get('/:id', bookCtr.getBook);
+router.get('/:id', auth.isUserAdmin, bookCtr.getBook);
 
 router.get('/category/:name', bookCtr.getBookWithCategory);
 

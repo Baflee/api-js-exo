@@ -10,7 +10,6 @@ pwSchema
 .has().letters()
 .has().digits(1)  
 .has().not().spaces()
-.has().not().symbols()
 .is().not().oneOf(['Passw0rd', 'Password123', 'Password0000']); 
 
 module.exports = pwSchema;
